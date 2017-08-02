@@ -1,6 +1,7 @@
 
 #include "../../libraries/mytcp/tcpserver.h"
 #include "../../libraries/mytcp/tcpclient.h"
+#include "../../libraries/mygps/gps.h"
 
 #include <unistd.h> // usleep
 #include <thread>
@@ -11,13 +12,7 @@ std::mutex m; // for lock
 void GPSThread();
 void GPSHandler(const char * src, size_t len);
 
-struct GPS_PAYLOAD {
-  float position[3]; // [m]
-  float velocity[3]; // [m/s]
-  float r_var[3]; // [m^2]
-  float v_var[3]; // [m^2/s^2]
-  uint8_t status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
-} __attribute__((packed)) gps_payload;
+struct GPS_PAYLOAD gps_payload;
 
 bool new_data_available = false;
 
@@ -25,9 +20,16 @@ int main(int argc, char const *argv[])
 {
   std::thread gps_thread(&GPSThread);
 
+  cout.precision(8);
   for(;;) {
     if(new_data_available){
-      cout << "x: " << gps_payload.position[0] << endl;
+      cout << " x: " << gps_payload.position[0];
+      cout << " y: " << gps_payload.position[1];
+      cout << " z: " << gps_payload.position[2];
+      cout << " vx: " << gps_payload.velocity[0];
+      cout << " vy: " << gps_payload.velocity[1];
+      cout << " vz: " << gps_payload.velocity[2] << endl;
+
       new_data_available = false;
     }
     usleep(1000);

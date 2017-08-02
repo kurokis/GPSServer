@@ -8,7 +8,7 @@
 #include "../myserial/serial.hpp"
 
 // Payload structure for TCP
-struct PAYLOAD {
+struct GPS_PAYLOAD {
   float position[3]; // [m]
   float velocity[3]; // [m/s]
   float r_var[3]; // [m^2]
@@ -30,21 +30,30 @@ class GPS : public Serial
     static const int nmea_buffer_length = 256; // buffer length for any nmea message
     struct FLAGS{
       bool new_gpgga_available;
+      bool new_gprmc_available;
     }flags;
     struct GPGGA{
-      float gps_time;
-      float longitude;
-      float latitude;
-      int fix_quality;
-      int satellites;
-      float hdop;
-      float height_above_sea_level;
-      float height_above_geoid;
-      int checksum;
-      string message;
+      float gps_time; // UTC time in seconds
+      float longitude; // in degrees
+      float latitude; // in degrees
+      int fix_quality; // 0: no fix, 1: GPS, 2: DGPS
+      int satellites; // number of satellites
+      float hdop; // HDOP
+      float height_above_sea_level; // in meters
+      float height_above_geoid; // in meters
+      int checksum; // checksum
+      string message; // whole message
     }gpgga;
-    struct PAYLOAD payload;
+    struct GPRMC{
+      char status; // A: OK, V: Invalid
+      float speed; // in knots
+      float true_course; // in degrees (0-360)
+      int checksum; // checksum
+      string message; // whole message
+    }gprmc;
+    struct GPS_PAYLOAD payload;
     void ProcessGPGGA(char* message);
+    void ProcessGPRMC(char* message);
     void ProcessPayload();
     int ChecksumOK(char* message);
   public:

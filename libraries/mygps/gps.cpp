@@ -13,6 +13,7 @@
 GPS::GPS() : device_name("/dev/ttyUSB_GPS"), baudrate(4800)
 {
   flags.new_gpgga_available = false;
+  flags.new_gprmc_available = false;
 }
 
 void GPS::Open(){
@@ -50,6 +51,8 @@ void GPS::ProcessIncomingBytes(){
       strncpy(message_type,&message_buffer[1],5);
       if(!strcmp(message_type,"GPGGA")){
         ProcessGPGGA(message_buffer);
+      }else if(!strcmp(message_type,"GPRMC")){
+        ProcessGPRMC(message_buffer);
       }
       ProcessPayload();
     }
@@ -84,7 +87,12 @@ void GPS::ProcessGPGGA(char* message){
   char* height_above_sea_level_ = strtok_r(NULL,",",&saveptr); // height above sea level
   strtok_r(NULL,",",&saveptr); // 'M'
   char* height_above_geoid_ = strtok_r(NULL,",",&saveptr); // height above geoid
-  // ignore the rest of the message
+  // ignore the rest
+
+  // return if data is invalid
+  if(fix_quality_[0]=='0'){
+    return;
+  }
 
   // GPS time
   float time = atof(gps_time_);
@@ -119,15 +127,56 @@ void GPS::ProcessGPGGA(char* message){
   flags.new_gpgga_available = true;
 }
 
+void GPS::ProcessGPRMC(char* message){
+  char buf[nmea_buffer_length];
+  strncpy(buf,message,nmea_buffer_length);
+
+  // return if checksum is invalid
+  int checksum = ChecksumOK(message);
+  if(!checksum){
+    cout << "gprmc checksum not ok" << endl;
+    return;
+  }
+
+  char* saveptr; // use strtok_r because it is thread-safe
+  strtok_r(buf,",",&saveptr); // "$GPRMC"
+  strtok_r(NULL,",",&saveptr); // UTC time
+  char* status_ = strtok_r(NULL,",",&saveptr); // Status, 'A' = OK, 'V' = warning
+  strtok_r(NULL,",",&saveptr); // latitude
+  strtok_r(NULL,",",&saveptr); // 'N' or 'S'
+  strtok_r(NULL,",",&saveptr); // longitude
+  strtok_r(NULL,",",&saveptr); // 'E' or 'W'
+  char* speed_ = strtok_r(NULL,",",&saveptr); // speed in knots
+  char* true_course_ = strtok_r(NULL,",",&saveptr); // true course in degrees
+  // ignore the rest
+
+  // return if data is invalid
+  if(status_[0] == 'V'){
+    return;
+  }
+
+  gprmc.status = status_[0];
+  gprmc.speed = atof(speed_);
+  gprmc.true_course = atof(true_course_);
+  gprmc.checksum = checksum;
+  gprmc.message = string(message);
+
+  flags.new_gprmc_available = true;
+}
+
 void GPS::ProcessPayload(){
   if(flags.new_gpgga_available){
     payload.position[0] = gpgga.longitude;
     payload.position[1] = gpgga.latitude;
     payload.position[2] = -gpgga.height_above_sea_level;
   }
-  payload.velocity[0] = 0;
-  payload.velocity[1] = 0;
-  payload.velocity[2] = 0;
+  if(flags.new_gprmc_available){
+    float speed = gprmc.speed * 0.51444; // m/s
+    float course = gprmc.true_course * M_PI / 180; // rad
+    payload.velocity[0] = cos(course)*speed; // north
+    payload.velocity[1] = -sin(course)*speed; // east
+    payload.velocity[2] = 0;
+  }
   payload.r_var[0] = 1.0;
   payload.r_var[1] = 1.0;
   payload.r_var[2] = 1.0;
@@ -172,8 +221,9 @@ int GPS::ChecksumOK(char* message){
 }
 
 bool GPS::NewDataAvailable(){
-  if(flags.new_gpgga_available){
+  if(flags.new_gpgga_available && flags.new_gprmc_available){
     flags.new_gpgga_available = false;
+    flags.new_gprmc_available = false;
     return true;
   }else{
     return false;
@@ -182,7 +232,6 @@ bool GPS::NewDataAvailable(){
 
 void GPS::ShowData(){
   cout << "--- GPGGA ---" << endl;
-  cout << "message: " << gpgga.message << endl;
   cout << "gpstime: " << gpgga.gps_time << endl;
   cout << "longitude: " << gpgga.longitude << endl;
   cout << "latitude: " << gpgga.latitude << endl;
@@ -192,6 +241,20 @@ void GPS::ShowData(){
   cout << "height above sea level: " << gpgga.height_above_sea_level << endl;
   cout << "height above geoid: " << gpgga.height_above_geoid << endl;
   cout << "checksum: " << gpgga.checksum << endl;
+  cout << "message: " << gpgga.message << endl;
+  cout << "--- GPRMC ---" << endl;
+  cout << "status: " << gprmc.status << endl;
+  cout << "speed: " << gprmc.speed << endl;
+  cout << "true course: " << gprmc.true_course << endl;
+  cout << "checksum: " << gprmc.checksum << endl;
+  cout << "message: " << gprmc.message << endl;
+  cout << "--- Payload ---" << endl;
+  cout << "position x: " << payload.position[0] << endl;
+  cout << "position y: " << payload.position[1] << endl;
+  cout << "position z: " << payload.position[2] << endl;
+  cout << "velocity x: " << payload.velocity[0] << endl;
+  cout << "velocity y: " << payload.velocity[1] << endl;
+  cout << "velocity z: " << payload.velocity[2] << endl;
 }
 
 const char* GPS::Payload(){

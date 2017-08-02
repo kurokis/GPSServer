@@ -12,7 +12,7 @@
 #include <arpa/inet.h>
 #include <functional>
 
-#define SERVER_BUF_SIZE 16
+#define SERVER_BUF_SIZE 256
 
 using namespace std;
 
