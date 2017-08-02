@@ -1,15 +1,22 @@
 #include "gps.h"
 
-GPS::GPS()  : vendorID(0x067b),
-  productID(0x2303),
-  dev_name("/dev/ttyUSB0"),
-  baudrate(4800)
+// Be sure to append rules to /etc/udev/rules.d to achieve the following:
+// 1. Change permissions to allow read & write for all users
+// 2. Bind USB GPS device under the static name "ttyUSB_GPS"
+// Example:
+// Check idVendor and idProduct with ``lsusb -v`` and
+// create a new rule under /etc/udev/rules.d/50-myusb.rules
+// --- 50-myusb.rules ---
+// SUBSYSTEMS=="usb", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303",
+// GROUP="users", MODE="0666", SYMLINK+="ttyUSB_GPS"
+// ----------------------
+GPS::GPS() : device_name("/dev/ttyUSB_GPS"), baudrate(4800)
 {
   flags.new_gpgga_available = false;
 }
 
 void GPS::Open(){
-  Serial::Open(dev_name, baudrate);
+  Serial::Open(device_name, baudrate);
 }
 
 void GPS::ProcessIncomingBytes(){
@@ -64,7 +71,7 @@ void GPS::ProcessGPGGA(char* message){
 
   char* saveptr; // use strtok_r because it is thread-safe
   strtok_r(buf,",",&saveptr); // "$GPGGA"
-  char* gps_time_ = strtok_r(NULL,",",&saveptr); //
+  char* gps_time_ = strtok_r(NULL,",",&saveptr); // UTC Time hhmmss.ss
   char* latitude_ = strtok_r(NULL,",",&saveptr); // latitude dddmm.mmmm
   char* ns_ = strtok_r(NULL,",",&saveptr); // 'N' or 'S'
   char* longitude_ = strtok_r(NULL,",",&saveptr); // longitude dddmm.mmmm
@@ -107,7 +114,7 @@ void GPS::ProcessGPGGA(char* message){
   float time = atof(gps_time_);
   float h = floor(time/10000);
   float m = floor((time-h*10000)/100);
-   float s = time-h*10000-m*100;
+  float s = time-h*10000-m*100;
   gpgga.gps_time = h*3600+m*60+s;
 
   // latitude and longitude

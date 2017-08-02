@@ -24,9 +24,7 @@ static ofstream fout("../output_data/gps_log.csv", ios::out);
 class GPS : public Serial
 {
   private:
-    uint16_t vendorID;
-    uint16_t productID;
-    string dev_name;
+    string device_name;
     int baudrate;
     struct FLAGS{
       bool new_gpgga_available;
@@ -44,7 +42,6 @@ class GPS : public Serial
       int checksum;
     }gpgga;
     struct PAYLOAD payload;
-
     void ProcessGPGGA(char* message);
     void ProcessPayload();
   public:
