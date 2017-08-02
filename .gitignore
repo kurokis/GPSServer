@@ -1,2 +1,3 @@
-/build
-/output_data
+/GPSServer/build
+/GPSServer/output_data
+/GPSClient/build

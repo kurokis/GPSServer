@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
-add_library(MyTCPServer STATIC
-	tcpserver.cpp
+add_library(MyGPS STATIC
+  gps.cpp
 )
-add_library(MyTCPClient STATIC
-	tcpclient.cpp
-)
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)

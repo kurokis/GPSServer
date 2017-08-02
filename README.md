@@ -1,5 +1,6 @@
 GPS Server
 --
 
-This program opens a serial connection with a USB GPS device that outputs GPS
-data in NMEA 0183 format. Processed data can be accessed via a tcp client.
+- GPSServer: TCP server which provides GPS data on request
+- GPSClient: TCP client to monitor output of GPSServer
+- libraries: shared library for both GPSServer and GPSClient
