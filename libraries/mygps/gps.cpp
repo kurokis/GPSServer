@@ -20,10 +20,9 @@ void GPS::Open(){
 }
 
 void GPS::ProcessIncomingBytes(){
-  const int message_buffer_length = 256;
-  static char message_buffer[message_buffer_length];
+  static char message_buffer[nmea_buffer_length];
   static char * message_buffer_ptr = &message_buffer[0];
-  uint8_t read_buffer[32];
+  uint8_t read_buffer[read_buffer_length];
 
   uint8_t bytes_remaining = Serial::Read(read_buffer,sizeof(read_buffer));
   if(bytes_remaining == 0){
@@ -58,14 +57,17 @@ void GPS::ProcessIncomingBytes(){
 }
 
 void GPS::ProcessGPGGA(char* message){
-  gpgga.message = string(message);
-  const int gpgga_buffer_length = 256;
-  char buf[gpgga_buffer_length];
-  strncpy(buf,message,gpgga_buffer_length);
+  char buf[nmea_buffer_length];
+  strncpy(buf,message,nmea_buffer_length);
 
   // return if payload is empty
   if(strstr(buf,",,,")){
+    return;
+  }
 
+  // return if checksum is invalid
+  int checksum = ChecksumOK(message);
+  if(!checksum){
     return;
   }
 
@@ -82,33 +84,7 @@ void GPS::ProcessGPGGA(char* message){
   char* height_above_sea_level_ = strtok_r(NULL,",",&saveptr); // height above sea level
   strtok_r(NULL,",",&saveptr); // 'M'
   char* height_above_geoid_ = strtok_r(NULL,",",&saveptr); // height above geoid
-  strtok_r(NULL,",",&saveptr); // 'M'
-  // strtok_r will skip next item in the message, because it will always be
-  // empty and strtok_r can't handle consecutive delimiters
-  strtok_r(NULL,"*",&saveptr); // ID
-  char* checksum_ = strtok_r(NULL,",",&saveptr); // checksum
-
-  // Validate message with checksum.
-  // Begin from character after '$' and end at character before '*'.
-  int checksum_received = 0, checksum_computed = 0;
-  if(checksum_[0]>='A'){
-    checksum_received += 16*(int)(checksum_[0]-'A'+10);
-  }else{
-    checksum_received += 16*(int)(checksum_[0]-'0');
-  }
-  if(checksum_[1]>='A'){
-    checksum_received += (int)(checksum_[1]-'A'+10);
-  }else{
-    checksum_received += (int)(checksum_[1]-'0');
-  }
-  char* ptr = &message[1]; // character after '$'
-  while(*ptr != '*'){
-    checksum_computed ^= (uint8_t)*ptr++;
-  }
-  if(checksum_received != checksum_computed){
-    return;
-  }
-  gpgga.checksum = checksum_computed;
+  // ignore the rest of the message
 
   // GPS time
   float time = atof(gps_time_);
@@ -137,6 +113,8 @@ void GPS::ProcessGPGGA(char* message){
   gpgga.hdop = atof(hdop_);
   gpgga.height_above_sea_level = atof(height_above_sea_level_);
   gpgga.height_above_geoid = atof(height_above_geoid_);
+  gpgga.checksum = checksum;
+  gpgga.message = string(message);
 
   flags.new_gpgga_available = true;
 }
@@ -158,6 +136,41 @@ void GPS::ProcessPayload(){
   payload.v_var[2] = 0.1;
 }
 
+int GPS::ChecksumOK(char* message){
+  const int gpgga_buffer_length = 256;
+  char buf[gpgga_buffer_length];
+  strncpy(buf,message,gpgga_buffer_length);
+
+  // checksum_received
+  char* saveptr; // use strtok_r because it is thread-safe
+  strtok_r(buf,"*",&saveptr);
+  char* cr = strtok_r(NULL,",",&saveptr); // checksum
+  int checksum_received = 0;
+  if(cr[0]>='A'){
+    checksum_received += 16*(int)(cr[0]-'A'+10);
+  }else{
+    checksum_received += 16*(int)(cr[0]-'0');
+  }
+  if(cr[1]>='A'){
+    checksum_received += (int)(cr[1]-'A'+10);
+  }else{
+    checksum_received += (int)(cr[1]-'0');
+  }
+
+  // checksum_computed
+  int checksum_computed = 0;
+  char* ptr = &message[1]; // character after '$'
+  while(*ptr != '*'){
+    checksum_computed ^= (uint8_t)*ptr++;
+  }
+
+  if(checksum_received == checksum_computed){
+    return checksum_computed;
+  }else{
+    return 0;
+  }
+}
+
 bool GPS::NewDataAvailable(){
   if(flags.new_gpgga_available){
     flags.new_gpgga_available = false;
@@ -168,6 +181,7 @@ bool GPS::NewDataAvailable(){
 }
 
 void GPS::ShowData(){
+  cout << "--- GPGGA ---" << endl;
   cout << "message: " << gpgga.message << endl;
   cout << "gpstime: " << gpgga.gps_time << endl;
   cout << "longitude: " << gpgga.longitude << endl;
@@ -185,7 +199,6 @@ const char* GPS::Payload(){
 }
 
 void GPS::Log(){
-  cout << payload.position[0] << endl;
   fout << payload.position[2] << "," << payload.position[1] << "," << payload.position[2] << ",";
   fout << payload.velocity[0] << "," << payload.velocity[1] << "," << payload.velocity[2] << ",";
   fout << payload.r_var[0] << "," << payload.r_var[1] << "," << payload.r_var[2] << ",";

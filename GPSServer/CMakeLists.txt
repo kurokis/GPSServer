@@ -3,7 +3,7 @@ project(gpsserver)
 SET(CMAKE_MODULE_PATH ${CMAKE_INSTALL_PREFIX}/lib/cmake/ )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -pthread")
 
-option(GPS_DEBUG_MODE "Debug mode" OFF)
+option(GPS_DEBUG_MODE "Debug mode" ON)
 if(GPS_DEBUG_MODE)
   add_definitions(-DGPS_DEBUG_MODE)
 endif()

@@ -26,11 +26,12 @@ class GPS : public Serial
   private:
     string device_name;
     int baudrate;
+    static const int read_buffer_length = 32; // buffer length for each serial read
+    static const int nmea_buffer_length = 256; // buffer length for any nmea message
     struct FLAGS{
       bool new_gpgga_available;
     }flags;
     struct GPGGA{
-      string message;
       float gps_time;
       float longitude;
       float latitude;
@@ -40,10 +41,12 @@ class GPS : public Serial
       float height_above_sea_level;
       float height_above_geoid;
       int checksum;
+      string message;
     }gpgga;
     struct PAYLOAD payload;
     void ProcessGPGGA(char* message);
     void ProcessPayload();
+    int ChecksumOK(char* message);
   public:
     // TODO: Add functionality to set home and waypoints
     // TODO: Add device scan using vendorID and productID
