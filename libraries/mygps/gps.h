@@ -3,8 +3,8 @@
 
 #include <fstream>
 #include <iostream>
-#include <eigen3/Eigen/Core>
-#include <string>
+#include <string.h>
+#include <math.h>
 #include "../myserial/serial.hpp"
 
 // Payload structure for TCP
