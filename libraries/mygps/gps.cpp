@@ -231,7 +231,7 @@ bool GPS::NewDataAvailable(){
 }
 
 void GPS::ShowData(){
-  cout << "--- GPGGA ---" << endl;
+  cout << endl << "--- GPGGA ---" << endl;
   cout << "gpstime: " << gpgga.gps_time << endl;
   cout << "longitude: " << gpgga.longitude << endl;
   cout << "latitude: " << gpgga.latitude << endl;

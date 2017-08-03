@@ -12,11 +12,12 @@ int main(int argc, char const *argv[])
     GPS gps;
 
     #ifndef GPS_DEBUG_MODE
-    cout << "Starting server" << endl;
+    cout << "Waiting for client... ";
     tcp_server s;
     // accept connection
     s.start_listen(8000);
     s.start_accept();
+    cout << "connected." << endl;
     #else
     cout << "DEBUG MODE" << endl;
     #endif
@@ -25,15 +26,11 @@ int main(int argc, char const *argv[])
     for(;;){
       gps.ProcessIncomingBytes();
       if (gps.NewDataAvailable()) {
-
         #ifndef GPS_DEBUG_MODE
         s.send_data(gps.Payload(), sizeof(gps.Payload()));
-        //savetofile(gps_);
-        #else
-        gps.ShowData();
-        gps.Log();
         #endif
-
+        gps.Log();
+        gps.ShowData();
       }
       usleep(1000);
     }

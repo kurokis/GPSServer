@@ -22,6 +22,7 @@ int main(int argc, char const *argv[])
 
   cout.precision(8);
   for(;;) {
+    m.lock();
     if(new_data_available){
       cout << " x: " << gps_payload.position[0];
       cout << " y: " << gps_payload.position[1];
@@ -29,9 +30,9 @@ int main(int argc, char const *argv[])
       cout << " vx: " << gps_payload.velocity[0];
       cout << " vy: " << gps_payload.velocity[1];
       cout << " vz: " << gps_payload.velocity[2] << endl;
-
       new_data_available = false;
     }
+    m.unlock();
     usleep(1000);
   }
   gps_thread.join();
@@ -41,7 +42,9 @@ int main(int argc, char const *argv[])
 void GPSThread()
 {
   tcp_client c;
+  cout << "Connecting to server... ";
   c.start_connect("127.0.0.1" , 8000);
+  cout << "connected." << endl;
   for(;;){
     c.recv_data(GPSHandler);
     usleep(1000);
@@ -50,11 +53,12 @@ void GPSThread()
 
 void GPSHandler(const char * src, size_t len)
 {
+  m.lock();
   char buf[CLIENT_BUF_SIZE];
   memcpy(buf, src, len);
   struct GPS_PAYLOAD * new_gps_payload = (struct GPS_PAYLOAD *)buf;
 
-  m.lock();
+
   gps_payload.status = new_gps_payload->status;
   for (int i=0;i<3;i++){
     gps_payload.position[i] = new_gps_payload->position[i];
