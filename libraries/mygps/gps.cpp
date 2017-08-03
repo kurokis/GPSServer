@@ -20,6 +20,14 @@ void GPS::Open(){
   Serial::Open(device_name, baudrate);
 }
 
+void GPS::SetOrigin(float longitude_, float latitude_){
+  longitude_0 = longitude_;
+  latitude_0 = latitude_;
+  // WGS84 spheroid
+  lat_to_meters = 111132.92 - 559.82*cos(2*latitude_*M_PI/180);
+  lon_to_meters = 111412.84*cos(latitude_*M_PI/180) - 93.5*cos(3*latitude_*M_PI/180);
+}
+
 void GPS::ProcessIncomingBytes(){
   static char message_buffer[nmea_buffer_length];
   static char * message_buffer_ptr = &message_buffer[0];
@@ -166,8 +174,8 @@ void GPS::ProcessGPRMC(char* message){
 
 void GPS::ProcessPayload(){
   if(flags.new_gpgga_available){
-    payload.position[0] = gpgga.longitude;
-    payload.position[1] = gpgga.latitude;
+    payload.position[0] = lon_to_meters*(gpgga.longitude - longitude_0);
+    payload.position[1] = lat_to_meters*(gpgga.latitude - latitude_0);
     payload.position[2] = -gpgga.height_above_sea_level;
   }
   if(flags.new_gprmc_available){

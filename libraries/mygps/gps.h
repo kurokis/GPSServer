@@ -28,6 +28,10 @@ class GPS : public Serial
     int baudrate;
     static const int read_buffer_length = 32; // buffer length for each serial read
     static const int nmea_buffer_length = 256; // buffer length for any nmea message
+    float longitude_0;
+    float latitude_0;
+    float lon_to_meters;
+    float lat_to_meters;
     struct FLAGS{
       bool new_gpgga_available;
       bool new_gprmc_available;
@@ -58,12 +62,12 @@ class GPS : public Serial
     int ChecksumOK(char* message);
   public:
     // TODO: Add functionality to set home and waypoints
-    // TODO: Add device scan using vendorID and productID
-    GPS();
-    void Open();
-    void ProcessIncomingBytes();
-    bool NewDataAvailable();
-    void ShowData();
+    GPS(); // Default: /dev/ttyUSB_GPS at baudrate 4800
+    void Open(); // Opens serial port
+    void SetOrigin(float longitude_, float latitude_);
+    void ProcessIncomingBytes(); // Process all new bytes from GPS module
+    bool NewDataAvailable(); // Note: calling this will change internal flag
+    void ShowData(); // Display data
     const char* Payload();
     void Log();
 };
