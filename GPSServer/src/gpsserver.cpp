@@ -1,7 +1,7 @@
-#include "../../libraries/mytcp/tcpserver.h"
-#include "../../libraries/mytcp/tcpclient.h"
-#include "../../libraries/mygps/gps.h"
-#include "../../libraries/myserial/serial.hpp"
+#include "../../libraries/tcp/tcpserver.h"
+#include "../../libraries/tcp/tcpclient.h"
+#include "../../libraries/gps/gps.h"
+#include "../../libraries/serial/serial.hpp"
 
 #include <iostream>
 #include <unistd.h> // usleep
@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
       gps.ProcessIncomingBytes();
       if (gps.NewDataAvailable()) {
         #ifndef GPS_DEBUG_MODE
-        s.send_data(gps.Payload(), sizeof(gps.Payload()));
+        s.send_data((const char*)gps.Payload(), sizeof(*gps.Payload()));
         #endif
         gps.Log();
         gps.ShowData();

@@ -12,9 +12,9 @@ MESSAGE("GPS_DEBUG_MODE? " ${GPS_DEBUG_MODE})
 find_package(Eigen3 REQUIRED)
 include_directories(EIGEN3_INCLUDE_DIR)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/mygps ${CMAKE_CURRENT_BINARY_DIR}/mygps_build)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/myserial ${CMAKE_CURRENT_BINARY_DIR}/myserial_build)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/mytcp ${CMAKE_CURRENT_BINARY_DIR}/mytcp_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/gps ${CMAKE_CURRENT_BINARY_DIR}/gps_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/serial ${CMAKE_CURRENT_BINARY_DIR}/serial_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/tcp ${CMAKE_CURRENT_BINARY_DIR}/tcp_build)
 
 add_executable(gpsclient src/gpsclient.cpp)
-target_link_libraries(gpsclient MyTCPServer MyTCPClient MyGPS MySerial)
+target_link_libraries(gpsclient TCPServer TCPClient GPS Serial)

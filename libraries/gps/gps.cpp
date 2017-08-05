@@ -265,8 +265,8 @@ void GPS::ShowData(){
   cout << "velocity z: " << payload.velocity[2] << endl;
 }
 
-const char* GPS::Payload(){
-  return (const char *)&payload;
+struct GPSPayload* GPS::Payload(){
+  return &payload;
 }
 
 void GPS::Log(){

@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
-add_library(MyTCPServer STATIC
-  tcpserver.cpp
-)
-add_library(MyTCPClient STATIC
-  tcpclient.cpp
+add_library(Serial STATIC
+  serial.cpp
 )
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)

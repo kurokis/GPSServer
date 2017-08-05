@@ -1,7 +1,6 @@
-
-#include "../../libraries/mytcp/tcpserver.h"
-#include "../../libraries/mytcp/tcpclient.h"
-#include "../../libraries/mygps/gps.h"
+#include "../../libraries/tcp/tcpserver.h"
+#include "../../libraries/tcp/tcpclient.h"
+#include "../../libraries/gps/gps.h"
 
 #include <unistd.h> // usleep
 #include <thread>
@@ -12,7 +11,7 @@ std::mutex m; // for lock
 void GPSThread();
 void GPSHandler(const char * src, size_t len);
 
-struct GPS_PAYLOAD gps_payload;
+struct GPSPayload gps_payload;
 
 bool new_data_available = false;
 
@@ -56,8 +55,7 @@ void GPSHandler(const char * src, size_t len)
   m.lock();
   char buf[CLIENT_BUF_SIZE];
   memcpy(buf, src, len);
-  struct GPS_PAYLOAD * new_gps_payload = (struct GPS_PAYLOAD *)buf;
-
+  struct GPSPayload * new_gps_payload = (struct GPSPayload *)buf;
 
   gps_payload.status = new_gps_payload->status;
   for (int i=0;i<3;i++){
