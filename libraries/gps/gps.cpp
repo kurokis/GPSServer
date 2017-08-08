@@ -20,14 +20,6 @@ void GPS::Open(){
   Serial::Open(device_name, baudrate);
 }
 
-void GPS::SetOrigin(float longitude_, float latitude_){
-  longitude_0 = longitude_;
-  latitude_0 = latitude_;
-  // WGS84 spheroid
-  lat_to_meters = 111132.92 - 559.82*cos(2*latitude_*M_PI/180);
-  lon_to_meters = 111412.84*cos(latitude_*M_PI/180) - 93.5*cos(3*latitude_*M_PI/180);
-}
-
 void GPS::ProcessIncomingBytes(){
   static char message_buffer[nmea_buffer_length];
   static char * message_buffer_ptr = &message_buffer[0];
@@ -174,9 +166,14 @@ void GPS::ProcessGPRMC(char* message){
 
 void GPS::ProcessPayload(){
   if(flags.new_gpgga_available){
-    payload.position[0] = lon_to_meters*(gpgga.longitude - longitude_0);
-    payload.position[1] = lat_to_meters*(gpgga.latitude - latitude_0);
-    payload.position[2] = -gpgga.height_above_sea_level;
+    payload.longitude = gpgga.longitude;
+    payload.latitude = gpgga.latitude;
+    payload.z = -gpgga.height_above_sea_level;
+    if(gpgga.fix_quality>0 && gpgga.satellites>3){
+      payload.gps_status |= PositionOK;
+    }else{
+      payload.gps_status &= ~PositionOK;
+    }
   }
   if(flags.new_gprmc_available){
     float speed = gprmc.speed * 0.51444; // m/s
@@ -184,13 +181,12 @@ void GPS::ProcessPayload(){
     payload.velocity[0] = cos(course)*speed; // north
     payload.velocity[1] = -sin(course)*speed; // east
     payload.velocity[2] = 0;
+    if(gprmc.status=='A'){
+      payload.gps_status |= VelocityOK;
+    }else{
+      payload.gps_status &= ~VelocityOK;
+    }
   }
-  payload.r_var[0] = 1.0;
-  payload.r_var[1] = 1.0;
-  payload.r_var[2] = 1.0;
-  payload.v_var[0] = 0.1;
-  payload.v_var[1] = 0.1;
-  payload.v_var[2] = 0.1;
 }
 
 int GPS::ChecksumOK(char* message){
@@ -257,12 +253,13 @@ void GPS::ShowData(){
   cout << "checksum: " << gprmc.checksum << endl;
   cout << "message: " << gprmc.message << endl;
   cout << "--- Payload ---" << endl;
-  cout << "position x: " << payload.position[0] << endl;
-  cout << "position y: " << payload.position[1] << endl;
-  cout << "position z: " << payload.position[2] << endl;
+  cout << "longitude: " << payload.longitude << endl;
+  cout << "latitude: " << payload.latitude << endl;
+  cout << "position z: " << payload.z << endl;
   cout << "velocity x: " << payload.velocity[0] << endl;
   cout << "velocity y: " << payload.velocity[1] << endl;
   cout << "velocity z: " << payload.velocity[2] << endl;
+  cout << "gps_status: " << unsigned(payload.gps_status) << endl;
 }
 
 struct GPSPayload* GPS::Payload(){
@@ -270,9 +267,7 @@ struct GPSPayload* GPS::Payload(){
 }
 
 void GPS::Log(){
-  fout << payload.position[2] << "," << payload.position[1] << "," << payload.position[2] << ",";
+  fout << payload.longitude << "," << payload.latitude << "," << payload.z << ",";
   fout << payload.velocity[0] << "," << payload.velocity[1] << "," << payload.velocity[2] << ",";
-  fout << payload.r_var[0] << "," << payload.r_var[1] << "," << payload.r_var[2] << ",";
-  fout << payload.v_var[0] << "," << payload.v_var[1] << "," << payload.v_var[2] << ",";
-  fout << payload.status << endl;
+  fout << payload.gps_status << endl;
 }
