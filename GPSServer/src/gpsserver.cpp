@@ -36,13 +36,11 @@ int main(int argc, char const *argv[])
       }else{
         if(++no_data_counter==2000){
             // no new data for two seconds
-            cout << "$$$ NO NEW DATA $$$" <<  endl;
-            gps.ShowData();
-            cout << "$$$$$$$$$$$$$$$$$$$" <<  endl;
+            cout << "$$$ NO NEW DATA " << no_data_counter  << " $$$" << endl;;
             no_data_counter = 0;
         }
       }
-      usleep(1000);
+      usleep(5000);
     }
 
     return 0;
