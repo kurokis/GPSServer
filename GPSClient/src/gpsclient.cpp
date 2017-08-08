@@ -23,12 +23,13 @@ int main(int argc, char const *argv[])
   for(;;) {
     m.lock();
     if(new_data_available){
-      cout << " x: " << gps_payload.position[0];
-      cout << " y: " << gps_payload.position[1];
-      cout << " z: " << gps_payload.position[2];
+      cout << " longitude: " << gps_payload.longitude;
+      cout << " latitude: " << gps_payload.latitude;
+      cout << " z: " << gps_payload.z;
       cout << " vx: " << gps_payload.velocity[0];
       cout << " vy: " << gps_payload.velocity[1];
-      cout << " vz: " << gps_payload.velocity[2] << endl;
+      cout << " vz: " << gps_payload.velocity[2];
+      cout << " gps_status: " << gps_payload.gps_status << endl;
       new_data_available = false;
     }
     m.unlock();
@@ -57,12 +58,12 @@ void GPSHandler(const char * src, size_t len)
   memcpy(buf, src, len);
   struct GPSPayload * new_gps_payload = (struct GPSPayload *)buf;
 
-  gps_payload.status = new_gps_payload->status;
+  gps_payload.gps_status = new_gps_payload->gps_status;
+  gps_payload.longitude = new_gps_payload->longitude;
+  gps_payload.latitude = new_gps_payload->latitude;
+  gps_payload.z = new_gps_payload->z;
   for (int i=0;i<3;i++){
-    gps_payload.position[i] = new_gps_payload->position[i];
     gps_payload.velocity[i] = new_gps_payload->velocity[i];
-    gps_payload.r_var[i] = new_gps_payload->r_var[i];
-    gps_payload.v_var[i] = new_gps_payload->v_var[i];
   }
   new_data_available = true;
   m.unlock();
