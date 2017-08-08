@@ -47,8 +47,9 @@ void GPS::ProcessIncomingBytes(){
     }
 
     if(new_message_available){
-      char message_type[5]; // GPGGA, etc.
+      char message_type[6]; // GPGGA, etc.
       strncpy(message_type,&message_buffer[1],5);
+      message_type[5] = '\0';
       if(!strcmp(message_type,"GPGGA")){
         ProcessGPGGA(message_buffer);
       }else if(!strcmp(message_type,"GPRMC")){
