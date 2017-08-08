@@ -1,5 +1,8 @@
 #include "gps.h"
 
+// filestream for logging
+static ofstream fout("../output_data/gps_log.csv", ios::out);
+
 // Be sure to append rules to /etc/udev/rules.d to achieve the following:
 // 1. Change permissions to allow read & write for all users
 // 2. Bind USB GPS device under the static name "ttyUSB_GPS"

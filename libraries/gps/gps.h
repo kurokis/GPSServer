@@ -7,6 +7,8 @@
 #include <math.h>
 #include "../serial/serial.hpp"
 
+using namespace std;
+
 // Payload structure for TCP
 struct GPSPayload {
   //float position[3]; // [m]
@@ -21,11 +23,6 @@ enum GPSStatusBits {
   VelocityOK = 1<<0,
   PositionOK = 1<<1,
 };
-
-using namespace std;
-
-// filestream for logging
-static ofstream fout("../output_data/gps_log.csv", ios::out);
 
 class GPS : public Serial
 {

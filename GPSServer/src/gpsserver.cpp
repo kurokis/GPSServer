@@ -34,8 +34,8 @@ int main(int argc, char const *argv[])
         gps.Log();
         gps.ShowData();
       }else{
-        if(++no_data_counter==2000){
-            // no new data for two seconds
+        if(++no_data_counter==1000){
+            // no new data for 5 seconds
             cout << "$$$ NO NEW DATA " << no_data_counter  << " $$$" << endl;;
             no_data_counter = 0;
         }
