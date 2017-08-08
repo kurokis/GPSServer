@@ -24,13 +24,23 @@ int main(int argc, char const *argv[])
 
     gps.Open();
     for(;;){
+      static int no_data_counter = 0;
       gps.ProcessIncomingBytes();
       if (gps.NewDataAvailable()) {
+        no_data_counter = 0;
         #ifndef GPS_DEBUG_MODE
         s.send_data((const char*)gps.Payload(), sizeof(*gps.Payload()));
         #endif
         gps.Log();
         gps.ShowData();
+      }else{
+        if(++no_data_counter==2000){
+            // no new data for two seconds
+            cout << "$$$ NO NEW DATA $$$" <<  endl;
+            gps.ShowData();
+            cout << "$$$$$$$$$$$$$$$$$$$" <<  endl;
+            no_data_counter = 0;
+        }
       }
       usleep(1000);
     }

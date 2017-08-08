@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
       cout << " vx: " << gps_payload.velocity[0];
       cout << " vy: " << gps_payload.velocity[1];
       cout << " vz: " << gps_payload.velocity[2];
-      cout << " gps_status: " << gps_payload.gps_status << endl;
+      cout << " gps_status: " << unsigned(gps_payload.gps_status) << endl;
       new_data_available = false;
     }
     m.unlock();
