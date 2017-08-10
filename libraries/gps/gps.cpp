@@ -180,10 +180,10 @@ void GPS::ProcessPayload(){
     }
   }
   if(flags.new_gprmc_available){
-    float speed = gprmc.speed * 0.51444; // m/s
-    float course = gprmc.true_course * M_PI / 180; // rad
+    float speed = gprmc.speed * 0.51444; // knots to m/s
+    float course = gprmc.true_course * M_PI / 180; // degrees to rad
     payload.velocity[0] = cos(course)*speed; // north
-    payload.velocity[1] = -sin(course)*speed; // east
+    payload.velocity[1] = sin(course)*speed; // east
     payload.velocity[2] = 0;
     if(gprmc.status=='A'){
       payload.gps_status |= VelocityOK;
