@@ -11,9 +11,8 @@ using namespace std;
 
 // Payload structure for TCP
 struct GPSPayload {
-  //float position[3]; // [m]
-  int32_t longitude; // [degrees]
-  int32_t latitude; // [degrees]
+  int32_t longitude; // [10^-6 deg]
+  int32_t latitude; // [10^-6 deg]
   float z; // height above sea level [m], downward positive
   float velocity[3]; // [m/s]
   uint8_t gps_status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
@@ -37,8 +36,8 @@ class GPS : public Serial
     }flags;
     struct GPGGA{
       float gps_time; // UTC time in seconds
-      int32_t longitude; // in degrees
-      int32_t latitude; // in degrees
+      int32_t longitude; // [10^-6 deg]
+      int32_t latitude; // [10^-6 deg]
       int fix_quality; // 0: no fix, 1: GPS, 2: DGPS
       int satellites; // number of satellites
       float hdop; // HDOP

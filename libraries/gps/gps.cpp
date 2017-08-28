@@ -106,12 +106,12 @@ void GPS::ProcessGPGGA(char* message){
   gpgga.gps_time = h*3600+m*60+s;
 
   // latitude and longitude
-  int32_t latitude = (int32_t)convert_latlon(latitude_);
+  int32_t latitude = int32_t(convert_latlon(latitude_));
   if(ns_[0]=='S'){
     latitude *= -1;
   }
   gpgga.latitude = latitude;
-  int32_t longitude = (int32_t)convert_latlon(longitude_);
+  int32_t longitude = int32_t(convert_latlon(longitude_));
   if(ew_[0]=='W'){
     longitude *= -1;
   }
@@ -275,7 +275,7 @@ void GPS::Log(){
 }
 
 uint32_t GPS::convert_latlon(char* buf){
-  // converts "ddmm.mmmm" to dddddddd
+  // converts "ddmm.mmmm" to uint32_t
   char temp[20];
   uint8_t j = 0;
   uint32_t return_val;
@@ -294,7 +294,7 @@ uint32_t GPS::convert_latlon(char* buf){
   temp[j]='\0';
   deg = atol(temp)/1000000;
   min = atol(temp)-deg*1000000;
-  return_val = deg*1000000+((long)((float)min)/60.0f*100.0f);
+  return_val = deg*1000000+long(float(min)/60.0f*100.0f);
   cout <<  return_val << endl;
-  return return_val; // deg*1000000
+  return return_val; // [10^-6 deg]
 }
