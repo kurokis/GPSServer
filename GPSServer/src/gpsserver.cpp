@@ -5,6 +5,9 @@
 
 #include <iostream>
 #include <unistd.h> // usleep
+
+#define TCP_PORT_GPS (8000)
+
 using namespace std;
 
 int main(int argc, char const *argv[])
@@ -15,7 +18,7 @@ int main(int argc, char const *argv[])
     cout << "Waiting for client... ";
     tcp_server s;
     // accept connection
-    s.start_listen(8000);
+    s.start_listen(TCP_PORT_GPS);
     s.start_accept();
     cout << "connected." << endl;
     #else
@@ -36,11 +39,11 @@ int main(int argc, char const *argv[])
       }else{
         if(++no_data_counter==1000){
             // no new data for 5 seconds
-            cout << "$$$ NO NEW DATA " << no_data_counter  << " $$$" << endl;;
+            cout << "NO NEW DATA " << no_data_counter  << "" << endl;;
             no_data_counter = 0;
         }
       }
-      usleep(5000);
+      usleep(1000);
     }
 
     return 0;
